@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g. 2.1.0)"
+        required: true
+        default: "2.1.0"
 
 permissions:
   contents: write
@@ -21,7 +27,11 @@ jobs:
       - name: Resolve version
         id: ver
         run: |
-          TAG="${GITHUB_REF_NAME#v}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ inputs.version }}"
+          else
+            TAG="${GITHUB_REF_NAME#v}"
+          fi
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "artifact=getbundled-agent-${TAG}-linux-amd64" >> "$GITHUB_OUTPUT"
 
@@ -37,6 +47,7 @@ jobs:
       - name: GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ steps.ver.outputs.tag }}
           files: ${{ steps.ver.outputs.artifact }}
           generate_release_notes: true
           body: |
