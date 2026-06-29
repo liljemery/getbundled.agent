@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const AgentVersion = "2.2.0"
+const AgentVersion = "2.2.1"
 
 const (
 	DefaultConfigDir       = "/opt/server-monitor"

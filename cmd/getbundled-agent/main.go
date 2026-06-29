@@ -54,7 +54,13 @@ func main() {
 	sendHeartbeat := func() { send(contracts.KindHeartbeat, securityCollector.Heartbeat()) }
 	sendMetrics := func() { send(contracts.KindMetrics, metricsCollector.Collect()) }
 	sendInventory := func() { send(contracts.KindInventory, inventoryCollector.Collect()) }
-	sendSecurity := func() { send(contracts.KindEvents, securityCollector.Collect()) }
+	sendSecurity := func() {
+		payload := securityCollector.Collect()
+		if len(payload.SSHSessions) == 0 {
+			return
+		}
+		send(contracts.KindEvents, payload)
+	}
 	sendLogs := func() {
 		entries := logsCollector.Collect()
 		if len(entries) == 0 {
