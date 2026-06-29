@@ -9,6 +9,7 @@ const (
 	KindInventory IngestKind = "inventory"
 	KindEvents    IngestKind = "events"
 	KindHeartbeat IngestKind = "heartbeat"
+	KindLogs      IngestKind = "logs"
 )
 
 // IngestEnvelope is the v2 wire format for POST /api/v1/monitoring/ingest/v2.

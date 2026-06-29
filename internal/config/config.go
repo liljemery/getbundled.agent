@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const AgentVersion = "2.1.0"
+const AgentVersion = "2.2.0"
 
 const (
 	DefaultConfigDir       = "/opt/server-monitor"
@@ -18,6 +18,7 @@ const (
 	MetricsInterval        = 20 * time.Second
 	InventoryInterval      = 10 * time.Minute
 	SecurityInterval       = 3 * time.Minute
+	LogsInterval           = 15 * time.Second
 	QueueFlushInterval     = 30 * time.Second
 )
 

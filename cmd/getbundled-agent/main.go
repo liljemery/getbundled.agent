@@ -25,6 +25,7 @@ func main() {
 	metricsCollector := collector.NewMetrics(cfg)
 	inventoryCollector := collector.NewInventory(cfg)
 	securityCollector := collector.NewSecurity(cfg)
+	logsCollector := collector.NewLogs(cfg)
 
 	log.Printf("getbundled-agent v%s server_uuid=%s server_id=%s", cfg.AgentVersion, cfg.ServerUUID, cfg.ServerID)
 
@@ -35,11 +36,13 @@ func main() {
 	metricsTick := time.NewTicker(config.MetricsInterval)
 	inventoryTick := time.NewTicker(config.InventoryInterval)
 	securityTick := time.NewTicker(config.SecurityInterval)
+	logsTick := time.NewTicker(config.LogsInterval)
 	queueTick := time.NewTicker(config.QueueFlushInterval)
 	defer heartbeatTick.Stop()
 	defer metricsTick.Stop()
 	defer inventoryTick.Stop()
 	defer securityTick.Stop()
+	defer logsTick.Stop()
 	defer queueTick.Stop()
 
 	send := func(kind contracts.IngestKind, payload any) {
@@ -52,6 +55,13 @@ func main() {
 	sendMetrics := func() { send(contracts.KindMetrics, metricsCollector.Collect()) }
 	sendInventory := func() { send(contracts.KindInventory, inventoryCollector.Collect()) }
 	sendSecurity := func() { send(contracts.KindEvents, securityCollector.Collect()) }
+	sendLogs := func() {
+		entries := logsCollector.Collect()
+		if len(entries) == 0 {
+			return
+		}
+		send(contracts.KindLogs, entries)
+	}
 	flushQueue := func() {
 		if err := client.FlushQueue(20); err != nil {
 			log.Printf("queue flush: %v", err)
@@ -60,6 +70,7 @@ func main() {
 
 	sendHeartbeat()
 	sendMetrics()
+	sendLogs()
 
 	for {
 		select {
@@ -74,6 +85,8 @@ func main() {
 			sendInventory()
 		case <-securityTick.C:
 			sendSecurity()
+		case <-logsTick.C:
+			sendLogs()
 		case <-queueTick.C:
 			flushQueue()
 		}
