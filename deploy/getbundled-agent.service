@@ -1,0 +1,20 @@
+[Unit]
+Description=GetBundled Server Agent v2
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Environment=GETBUNDLED_SERVER_UUID=
+Environment=GETBUNDLED_AGENT_TOKEN=
+Environment=GETBUNDLED_INGEST_BASE_URL=https://api.getbundled.app
+Environment=GETBUNDLED_SERVER_ID=
+Environment=GETBUNDLED_CONFIG_DIR=/opt/server-monitor
+Environment=GETBUNDLED_QUEUE_PATH=/opt/server-monitor/offline_queue.jsonl
+ExecStart=/usr/local/bin/getbundled-agent
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

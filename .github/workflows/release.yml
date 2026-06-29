@@ -1,0 +1,43 @@
+name: Release agent
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Resolve version
+        id: ver
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "artifact=getbundled-agent-${TAG}-linux-amd64" >> "$GITHUB_OUTPUT"
+
+      - name: Build linux-amd64
+        run: |
+          GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w" \
+            -o "${{ steps.ver.outputs.artifact }}" ./cmd/getbundled-agent
+
+      - name: SHA256
+        id: sha
+        run: echo "sha=$(sha256sum '${{ steps.ver.outputs.artifact }}' | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+
+      - name: GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.ver.outputs.artifact }}
+          generate_release_notes: true
+          body: |
+            SHA256: `${{ steps.sha.outputs.sha }}`
